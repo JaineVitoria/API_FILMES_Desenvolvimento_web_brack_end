@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Notificações de Filmes</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; }
+        #status.on { color: green; font-weight: bold; }
+        #status.off { color: red; font-weight: bold; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 10px; margin-bottom: 8px; border-left: 5px solid #888; background: #f3f3f3; }
+        li.FILME_CADASTRADO { border-color: green; }
+        li.FILME_ATUALIZADO { border-color: orange; }
+        li.FILME_REMOVIDO { border-color: red; }
+        .hora { color: #555; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>Notificações em tempo real</h1>
+    <p>Status: <span id="status" class="off">desconectado</span></p>
+
+    <h2>Notificações recebidas</h2>
+    <ul id="lista"></ul>
+
+    <script>
+        const status = document.getElementById("status");
+        const lista = document.getElementById("lista");
+        const ws = new WebSocket("ws://localhost:8080/ws/filmes");
+
+        ws.onopen = () => {
+            status.textContent = "conectado";
+            status.className = "on";
+        };
+
+        ws.onclose = () => {
+            status.textContent = "desconectado";
+            status.className = "off";
+        };
+
+        ws.onmessage = (event) => {
+            const dados = JSON.parse(event.data);
+            const hora = new Date().toLocaleTimeString("pt-BR");
+
+            const item = document.createElement("li");
+            item.className = dados.evento;
+            item.innerHTML =
+                "<strong>" + dados.evento + "</strong> - id " + dados.id +
+                ', título "' + dados.titulo + '"' +
+                '<br><span class="hora">Recebido às ' + hora + "</span>";
+
+            lista.prepend(item);
+        };
+    </script>
+</body>
+</html>
